@@ -20,7 +20,7 @@ public class TestProviderFragment extends Fragment {
     private Button mStartStopButton;
     private TextView mStatusTextView;
 
-    private RunManager mRunManager;
+    private TestProviderManager mTestProviderManager;
 
     private Location mLastLocation;
 
@@ -29,7 +29,7 @@ public class TestProviderFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        mRunManager = RunManager.getInstance(getActivity());
+        mTestProviderManager = TestProviderManager.getInstance(getActivity());
     }
 
     @Override
@@ -40,10 +40,10 @@ public class TestProviderFragment extends Fragment {
         mStartStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mRunManager.isTestProviderOn()) {
-                    mRunManager.stopTestProviderLocationUpdates();
+                if (mTestProviderManager.isTestProviderOn()) {
+                    mTestProviderManager.stopTestProviderLocationUpdates();
                 } else {
-                    mRunManager.startTestProviderLocationUpdates();
+                    mTestProviderManager.startTestProviderLocationUpdates();
                 }
 
                 updateUI();
@@ -56,7 +56,7 @@ public class TestProviderFragment extends Fragment {
     }
 
     private void updateUI() {
-        boolean started = mRunManager.isTestProviderOn();
+        boolean started = mTestProviderManager.isTestProviderOn();
 
         if (started) {
             mStartStopButton.setText(R.string.stop);
@@ -97,7 +97,7 @@ public class TestProviderFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        getActivity().registerReceiver(mLocationReceiver, new IntentFilter(RunManager.ACTION_LOCATION));
+        getActivity().registerReceiver(mLocationReceiver, new IntentFilter(TestProviderManager.ACTION_LOCATION));
     }
 
     @Override

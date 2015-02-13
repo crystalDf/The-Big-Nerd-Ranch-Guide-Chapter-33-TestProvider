@@ -11,16 +11,16 @@ import android.location.LocationManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunManager {
+public class TestProviderManager {
 
-    private static final String TAG = "RunManager";
+    private static final String TAG = "TestProviderManager";
 
     public static final String ACTION_LOCATION =
             "com.star.testprovider.ACTION_LOCATION";
 
     private static final String TEST_PROVIDER = "TEST_PROVIDER";
 
-    private static RunManager sRunManager;
+    private static TestProviderManager sTestProviderManager;
 
     private Context mAppContext;
 
@@ -28,7 +28,7 @@ public class RunManager {
 
     private List<Location> mLocationList;
 
-    private RunManager(Context appContext) {
+    private TestProviderManager(Context appContext) {
         mAppContext = appContext;
         mLocationManager = (LocationManager)
                 mAppContext.getSystemService(Context.LOCATION_SERVICE);
@@ -36,15 +36,15 @@ public class RunManager {
         initLocationData();
     }
 
-    public static RunManager getInstance(Context context) {
-        if (sRunManager == null) {
-            synchronized (RunManager.class) {
-                if (sRunManager == null) {
-                    sRunManager = new RunManager(context);
+    public static TestProviderManager getInstance(Context context) {
+        if (sTestProviderManager == null) {
+            synchronized (TestProviderManager.class) {
+                if (sTestProviderManager == null) {
+                    sTestProviderManager = new TestProviderManager(context);
                 }
             }
         }
-        return sRunManager;
+        return sTestProviderManager;
     }
 
     private PendingIntent getLocationPendingIntent(boolean shouldCreate) {

@@ -21,8 +21,8 @@ public class TestProviderService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        RunManager runManager = RunManager.getInstance(TestProviderService.this);
-        runManager.publishLocation(sRunIndex++);
+        TestProviderManager testProviderManager = TestProviderManager.getInstance(TestProviderService.this);
+        testProviderManager.publishLocation(sRunIndex++);
     }
 
     public static void setServiceAlarm(Context context, boolean isOn) {
