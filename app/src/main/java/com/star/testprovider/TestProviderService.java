@@ -23,7 +23,6 @@ public class TestProviderService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         RunManager runManager = RunManager.getInstance(TestProviderService.this);
         runManager.publishLocation(sRunIndex++);
-        System.out.println("RunIndex: " + sRunIndex);
     }
 
     public static void setServiceAlarm(Context context, boolean isOn) {

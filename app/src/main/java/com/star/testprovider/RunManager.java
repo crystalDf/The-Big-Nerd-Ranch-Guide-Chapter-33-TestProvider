@@ -1,7 +1,9 @@
 package com.star.testprovider;
 
 
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationManager;
@@ -13,6 +15,9 @@ public class RunManager {
 
     private static final String TAG = "RunManager";
 
+    public static final String ACTION_LOCATION =
+            "com.star.testprovider.ACTION_LOCATION";
+
     private static final String TEST_PROVIDER = "TEST_PROVIDER";
 
     private static RunManager sRunManager;
@@ -21,15 +26,12 @@ public class RunManager {
 
     private LocationManager mLocationManager;
 
-    private List<Listener> mListenerList;
     private List<Location> mLocationList;
 
     private RunManager(Context appContext) {
         mAppContext = appContext;
         mLocationManager = (LocationManager)
                 mAppContext.getSystemService(Context.LOCATION_SERVICE);
-
-        mListenerList = new ArrayList<>();
 
         initLocationData();
     }
@@ -45,18 +47,11 @@ public class RunManager {
         return sRunManager;
     }
 
-    public interface Listener {
-        public void onLocationReceived(Context context, Location location);
-        public void onProviderEnabledChanged(boolean enabled);
-    }
+    private PendingIntent getLocationPendingIntent(boolean shouldCreate) {
+        Intent broadcast = new Intent(ACTION_LOCATION);
+        int flags = shouldCreate ? 0 : PendingIntent.FLAG_NO_CREATE;
 
-    public void addListener(Listener listener) {
-        if (!mListenerList.contains(listener))
-            mListenerList.add(listener);
-    }
-
-    public void removeListener(Listener listener) {
-        mListenerList.remove(listener);
+        return PendingIntent.getBroadcast(mAppContext, 0, broadcast, flags);
     }
 
     public void startTestProviderLocationUpdates() {
@@ -71,19 +66,25 @@ public class RunManager {
         mLocationManager.setTestProviderStatus(TEST_PROVIDER,
                 GpsStatus.GPS_EVENT_STARTED, null, System.currentTimeMillis());
 
-        for (Listener listener : mListenerList) {
-            listener.onProviderEnabledChanged(true);
-        }
-
         TestProviderService.setServiceAlarm(mAppContext, true);
+
+        PendingIntent pi = getLocationPendingIntent(true);
+
+        mLocationManager.requestLocationUpdates(TEST_PROVIDER, 0, 0, pi);
     }
 
     public void stopTestProviderLocationUpdates() {
-        mLocationManager.removeTestProvider(TEST_PROVIDER);
 
-        for (Listener listener : mListenerList) {
-            listener.onProviderEnabledChanged(false);
+        PendingIntent pi = getLocationPendingIntent(false);
+
+        if (pi != null) {
+            mLocationManager.removeUpdates(pi);
+            pi.cancel();
         }
+
+        mLocationManager.setTestProviderEnabled(TEST_PROVIDER, false);
+
+        mLocationManager.removeTestProvider(TEST_PROVIDER);
 
         TestProviderService.setServiceAlarm(mAppContext, false);
     }
@@ -96,12 +97,6 @@ public class RunManager {
         Location location = mLocationList.get(i % mLocationList.size());
         location.setTime(System.currentTimeMillis());
         mLocationManager.setTestProviderLocation(TEST_PROVIDER, location);
-
-//        for (Listener listener : mListenerList) {
-//            listener.onLocationReceived(mAppContext, location);
-//        }
-
-
     }
 
     private Location buildLocation(double latitude, double longitude, double altitude) {

@@ -1,7 +1,9 @@
 package com.star.testprovider;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class TestProviderFragment extends Fragment {
 
@@ -21,34 +24,12 @@ public class TestProviderFragment extends Fragment {
 
     private Location mLastLocation;
 
-    private RunManager.Listener mListener = new RunManager.Listener() {
-        @Override
-        public void onLocationReceived(Context context, Location location) {
-            mLastLocation = location;
-            updateUI();
-        }
-
-        @Override
-        public void onProviderEnabledChanged(boolean enabled) {
-            updateUI();
-        }
-    };
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
         mRunManager = RunManager.getInstance(getActivity());
-
-        mRunManager.addListener(mListener);
-    }
-
-    @Override
-    public void onDestroy() {
-        mRunManager.removeListener(mListener);
-
-        super.onDestroy();
     }
 
     @Override
@@ -64,12 +45,12 @@ public class TestProviderFragment extends Fragment {
                 } else {
                     mRunManager.startTestProviderLocationUpdates();
                 }
+
+                updateUI();
             }
         });
 
         mStatusTextView = (TextView) v.findViewById(R.id.statusTextView);
-
-        updateUI();
 
         return v;
     }
@@ -91,5 +72,37 @@ public class TestProviderFragment extends Fragment {
         } else {
             mStatusTextView.setText("");
         }
+    }
+
+    private BroadcastReceiver mLocationReceiver = new LocationReceiver() {
+        @Override
+        protected void onLocationReceived(Context context, Location location) {
+            super.onLocationReceived(context, location);
+
+            mLastLocation = location;
+            if (isVisible()) {
+                updateUI();
+            }
+        }
+
+        @Override
+        protected void onProviderEnabledChanged(boolean enabled) {
+            super.onProviderEnabledChanged(enabled);
+
+            int toastText = enabled ? R.string.testProvider_enabled : R.string.testProvider_disabled;
+            Toast.makeText(getActivity(), toastText, Toast.LENGTH_LONG).show();
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getActivity().registerReceiver(mLocationReceiver, new IntentFilter(RunManager.ACTION_LOCATION));
+    }
+
+    @Override
+    public void onStop() {
+        getActivity().unregisterReceiver(mLocationReceiver);
+        super.onStop();
     }
 }
